@@ -1,13 +1,16 @@
 // for this output to make sense, see http://filmicworlds.com/blog/linear-space-lighting-i-e-gamma/
+// This file is just a small experiment I made to see how SRGB works in sokol.
 const sokol = @import("sokol");
 const slog = sokol.log;
 const sg = sokol.gfx;
 const sapp = sokol.app;
 const sglue = sokol.glue;
 const std = @import("std");
-const shd = @import("shaders/triangle.glsl.zig");
-const SRGB = true;
+const shd = @import("shaders/srgb.glsl.zig");
 
+// This works on mac but not windows, so we do it in software at the end of our shader.
+// So if you supply a color in this app, it's in Linear! Plan accordingly.
+const SRGB = false;
 
 const Clr = struct {
     r: u8,

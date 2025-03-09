@@ -5,8 +5,10 @@ const sapp = sokol.app;
 const sglue = sokol.glue;
 const std = @import("std");
 const shd = @import("shaders/triangle.glsl.zig");
-const SRGB = true;
 
+// This works on mac but not windows, so we do it in software at the end of our shader.
+// So if you supply a color in this app, it's in Linear! Plan accordingly.
+const SRGB = false;
 
 const Clr = struct {
     r: u8,
