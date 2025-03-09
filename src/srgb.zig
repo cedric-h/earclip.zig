@@ -1,3 +1,4 @@
+// for this output to make sense, see http://filmicworlds.com/blog/linear-space-lighting-i-e-gamma/
 const sokol = @import("sokol");
 const slog = sokol.log;
 const sg = sokol.gfx;
@@ -95,39 +96,21 @@ fn drawBox(min_x: f32, min_y: f32, max_x: f32, max_y: f32, clr: Clr) void {
     });
 }
 
-fn drawLine(a_x: f32, a_y: f32, b_x: f32, b_y: f32, thickness: f32, clr: Clr) void {
-    const vbuf_i: u16 = @truncate(state.vrts.items.len);
-
-    var dx = a_x - b_x;
-    var dy = a_y - b_y;
-    dx /= @sqrt(dx*dx + dy*dy);
-    dy /= @sqrt(dx*dx + dy*dy);
-    const px = -dy * thickness * 0.5;
-    const py =  dx * thickness * 0.5;
-
-    state.vrts.appendSliceAssumeCapacity(&[_]Vtx{
-        .{ .pos = .{ .x = a_x + px, .y = a_y + py, .z = 0.5 }, .clr = clr },
-        .{ .pos = .{ .x = a_x - px, .y = a_y - py, .z = 0.5 }, .clr = clr },
-        .{ .pos = .{ .x = b_x + px, .y = b_y + py, .z = 0.5 }, .clr = clr },
-        .{ .pos = .{ .x = b_x - px, .y = b_y - py, .z = 0.5 }, .clr = clr },
-    });
-
-    state.idxs.appendSliceAssumeCapacity(&[_]u16{
-        vbuf_i + 0, vbuf_i + 1, vbuf_i + 2,
-        vbuf_i + 2, vbuf_i + 3, vbuf_i + 1
-    });
-}
-
 export fn frame() void {
     // @import("std").debug.print("{}\n\n", .{ sg.queryPixelformat(.SRGB8A8) });
 
     state.vrts.clearRetainingCapacity();
     state.idxs.clearRetainingCapacity();
 
-    const red = Clr.premultiplied(255, 20, 20, 255);
-    drawBox(-0.5, -0.5, 0.5, 0.5, Clr.premultiplied(255, 255, 255, 255));
-    drawLine(-0.3, -0.3,  0.3,  0.3, 0.1, red);
-    drawLine(-0.3,  0.3,  0.3, -0.3,  0.1, red);
+    const third: f32 = 1.0 / 3.0;
+    const bar_count = 480;
+    const bar_countf = @as(comptime_float, bar_count);
+    for (0..bar_count) |i| {
+        const y = (@as(f32, @floatFromInt(i)) - bar_countf*0.5) / (bar_countf*0.5);
+        drawBox(-1.0, y, 1.0, y + 1.0 / (bar_countf*0.5), Clr.premultiplied(255, 255, 255, if (i % 2 == 0) 0 else 255));
+    }
+    drawBox(-third,  1.0, third, 0.0, Clr.premultiplied(255, 255, 255, 128));
+    drawBox(-third, -1.0, third, 0.0, Clr.premultiplied(255, 255, 255, 187));
 
     sg.updateBuffer(state.bind.vertex_buffers[0], sg.asRange(state.vrts.items));
     sg.updateBuffer(state.bind.index_buffer, sg.asRange(state.idxs.items));
@@ -138,13 +121,6 @@ export fn frame() void {
     sg.beginPass(.{ .action = state.pass_action, .swapchain = chain });
     sg.applyPipeline(state.pip);
     sg.applyBindings(state.bind);
-
-    {
-        const aspect_ratio = sapp.widthf() / sapp.heightf();
-        const vs_params: shd.VsParams = .{ .u_zoom = .{ 1.0, aspect_ratio }, .u_pos = .{ 0, 0 } };
-        sg.applyUniforms(shd.UB_vs_params, sg.asRange(&vs_params));
-    }
-
     sg.draw(0, @truncate(state.idxs.items.len), 1);
     sg.endPass();
     sg.commit();
@@ -171,11 +147,6 @@ pub fn main() void {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = input,
-
-        // these make it look nice
-        .sample_count = 4,
-        .high_dpi = true,
-
         .width = 640,
         .height = 480,
         .icon = .{ .sokol_default = true },
