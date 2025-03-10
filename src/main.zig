@@ -267,7 +267,7 @@ export fn frame() void {
     }
 
     state.earclip_out.clearRetainingCapacity();
-    earclip(&state.gpa, &state.shape.items, &state.earclip_out);
+    earclip(state.gpa, state.shape.items, &state.earclip_out) catch unreachable;
     for (0..(state.earclip_out.items.len / 3)) |i| {
         const a = state.shape.items[state.earclip_out.items[i*3 + 0]];
         const b = state.shape.items[state.earclip_out.items[i*3 + 1]];
@@ -356,7 +356,7 @@ pub fn main() void {
         .width = 1280,
         .height = 960,
         .icon = .{ .sokol_default = true },
-        .window_title = "triangle.zig",
+        .window_title = "earclip.zig",
         .logger = .{ .func = slog.func },
     });
 }

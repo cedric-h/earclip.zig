@@ -1,16 +1,41 @@
+// vim: sw=4 ts=4 expandtab smartindent
 const std = @import("std");
 
-pub export fn earclip(
-	allo: *const std.mem.Allocator,
-	vertices_slice: *const []const [2]f32,
-	indices: *std.ArrayList(u16)
-) void {
-    var vertices = std.ArrayList([2]f32).fromOwnedSlice(
-        allo.*,
-        allo.dupe([2]f32, vertices_slice.*) catch unreachable
-    );
-    var original_indices = std.ArrayList(u16).initCapacity(allo.*, vertices_slice.len) catch unreachable;
-    for (0..vertices_slice.len) |i| original_indices.appendAssumeCapacity(@truncate(i));
+pub fn earclip(
+    allo: std.mem.Allocator,
+    vertices_slice: []const [2]f32,
+    indices: *std.ArrayList(u16)
+) !void {
+    var vertices = try std.ArrayList([2]f32).initCapacity(allo, vertices_slice.len);
+    defer vertices.deinit();
+
+    var original_indices = try std.ArrayList(u16).initCapacity(allo, vertices_slice.len);
+    defer original_indices.deinit();
+
+    // initialize the arrays, reversing along the way if necessary
+    {
+        // determine if it's necessary to reverse the shape
+        // (otherwise determinants will have wrong sign, convex check will fail)
+        const reverse: bool = rev: {
+            var signed_area_sum: f32 = 0;
+
+            const v = vertices_slice;
+            var j = v.len - 1;
+            for (0..v.len) |i| {
+                signed_area_sum += (v[j][0] - v[i][0]) * (v[i][1] + v[j][1]);
+                j = i;
+            }
+
+            break :rev (signed_area_sum < 0);
+        };
+
+        const n = vertices_slice.len;
+        for (0..n) |j| {
+            const i = if (reverse) n - 1 - j else j;
+            vertices.appendAssumeCapacity(vertices_slice[i]);
+            original_indices.appendAssumeCapacity(@truncate(i));
+        }
+    }
 
     // prevents infinite loop
     var escape_hatch: usize = 0;
@@ -58,11 +83,11 @@ pub export fn earclip(
             };
 
             if (is_ear) {
-                indices.appendSlice(&[_]u16{
+                try indices.appendSlice(&[_]u16{
                     original_indices.items[a],
                     original_indices.items[b],
                     original_indices.items[c]
-                }) catch unreachable;
+                });
 
                 _ = vertices.orderedRemove(b);
                 _ = original_indices.orderedRemove(b);
