@@ -10,6 +10,6 @@ Currently, the algorithm allocates
  - one u16 for each vertex, this is used to determine what the original index of a vertex was (needed to provide the final output)
  - the array of triangle indices, which is the output you're interested in.
 
-Even the javascript version triangulates any shape I could make in fractions of a millisecond, but if you were triangulating really complicated shapes, you might want to speed up this basic algorithm with some sort of spatial hash/quadtree for finding triangles inside of other triangles. (which would increase the memory footprint)
+Even the javascript version triangulates any shape I could make in 0.0001ms, but if you were triangulating really complicated shapes, you might want to speed up this basic algorithm with some sort of spatial hash/quadtree for finding triangles inside of other triangles. (which would increase the memory footprint)
 
 There's also an "escape hatch" where, to prevent infinite loops on degenerate cases (self-intersecting shapes, etc.) the algorithm bails after a million iterations.
