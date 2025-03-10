@@ -1,4 +1,4 @@
-Basic, 100 line zig port of the earclipping algorithm seen [https://cedric-h.github.io/linear-webgl/earclip](here). (Interactive web demo, click "next" and hold it.)
+Basic, 100 line zig port of the earclipping algorithm seen [here](https://cedric-h.github.io/linear-webgl/earclip). (Interactive web demo, click "next" and hold it.)
 
 You can try to pull in this dependency from the zig package manager thingy, but it's probably easier to just copy-paste the function into your file. Call it "stb" style. (The code you want is in `src/root.zig`.)
 
