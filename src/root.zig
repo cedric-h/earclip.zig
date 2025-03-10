@@ -99,3 +99,18 @@ pub fn earclip(
         if (escape_hatch > 1e6) return;
     }
 }
+
+test "detect leak" {
+    var idx = std.ArrayList(u16).init(std.testing.allocator);
+    defer idx.deinit();
+    try earclip(std.testing.allocator, &[4][2]f32{
+        .{ 10,0 }, .{ 0,50 }, .{ 60,60 }, .{ 70,10 }
+    }, &idx);
+
+    try std.testing.expect(idx.items[0] == 3);
+    try std.testing.expect(idx.items[1] == 2);
+    try std.testing.expect(idx.items[2] == 1);
+    try std.testing.expect(idx.items[3] == 3);
+    try std.testing.expect(idx.items[4] == 1);
+    try std.testing.expect(idx.items[5] == 0);
+}
