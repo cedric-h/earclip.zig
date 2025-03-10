@@ -4,6 +4,8 @@ You can try to pull in this dependency from the zig package manager thingy, but 
 
 The executable in src/ is built with sokol, and provides a minimal fascimile of the web demo at the link above. It works with Zig 0.14.0 on Windows and Mac.
 
+![Screenshot 2025-03-09 215943](https://github.com/user-attachments/assets/32ea8fb0-f671-4b5b-8053-3530f892c920)
+
 # Memory Footprint
 Currently, the algorithm allocates
  - a copy of all the vertices (it removes a vertex from this array when it finds one)
@@ -13,3 +15,4 @@ Currently, the algorithm allocates
 Even the javascript version triangulates any shape I could make in 0.0001ms, but if you were triangulating really complicated shapes, you might want to speed up this basic algorithm with some sort of spatial hash/quadtree for finding triangles inside of other triangles. (which would increase the memory footprint)
 
 There's also an "escape hatch" where, to prevent infinite loops on degenerate cases (self-intersecting shapes, etc.) the algorithm bails after a million iterations.
+
